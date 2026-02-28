@@ -12,7 +12,7 @@ class Currency1dKdata(KdataBase, CurrencyKdataCommon):
     __tablename__ = "currency_1d_kdata"
 
 
-register_schema(providers=["em"], db_name="currency_1d_kdata", schema_base=KdataBase, entity_type="currency")
+register_schema(db_name="currency_1d_kdata", schema_base=KdataBase, entity_type="currency")
 
 
 # the __all__ is generated

@@ -40,7 +40,7 @@ class FactorState(ZvtInfoBase, StateMixin):
     __tablename__ = "factor_state"
 
 
-register_schema(providers=["zvt"], db_name="zvt_info", schema_base=ZvtInfoBase)
+register_schema(db_name="zvt_info", schema_base=ZvtInfoBase)
 
 
 # the __all__ is generated

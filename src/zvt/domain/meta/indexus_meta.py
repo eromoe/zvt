@@ -23,7 +23,7 @@ class Indexus(IndexusMetaBase, Portfolio):
     base_point = Column(Float)
 
 
-register_schema(providers=["em"], db_name="indexus_meta", schema_base=IndexusMetaBase)
+register_schema(db_name="indexus_meta", schema_base=IndexusMetaBase)
 
 
 # the __all__ is generated

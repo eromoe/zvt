@@ -33,7 +33,7 @@ class Country(CountryMetaBase, TradableEntity):
     latitude = Column(Float)
 
 
-register_schema(providers=["wb"], db_name="country_meta", schema_base=CountryMetaBase)
+register_schema(db_name="country_meta", schema_base=CountryMetaBase)
 
 
 # the __all__ is generated

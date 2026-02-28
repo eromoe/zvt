@@ -38,7 +38,7 @@ class Economy(MacroBase, Mixin):
     fdi_of_gdp = Column(Float)
 
 
-register_schema(providers=["wb"], db_name="macro", schema_base=MacroBase)
+register_schema(db_name="macro", schema_base=MacroBase)
 
 
 # the __all__ is generated

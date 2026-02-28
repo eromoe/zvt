@@ -221,7 +221,7 @@ def update_trader_details(trader_index, entity_type, entity_provider):
         # account stats
         account_stats = get_account_stats_figure(account_stats_reader=account_readers[trader_index])
 
-        providers = zvt_context.tradable_schema_map.get(entity_type).providers
+        providers = zvt_context.tradable_schema_map.get(entity_type).get_providers()
         entity_provider_options = [{"label": name, "value": name} for name in providers]
 
         # entities
@@ -241,7 +241,7 @@ def update_trader_details(trader_index, entity_type, entity_provider):
     else:
         entity_type_options = [{"label": name, "value": name} for name in zvt_context.tradable_schema_map.keys()]
         account_stats = None
-        providers = zvt_context.tradable_schema_map.get(entity_type).providers
+        providers = zvt_context.tradable_schema_map.get(entity_type).get_providers()
         entity_provider_options = [{"label": name, "value": name} for name in providers]
         df = get_entities(
             provider=entity_provider, entity_type=entity_type, columns=["entity_id", "code", "name"], index="entity_id"

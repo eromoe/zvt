@@ -60,7 +60,7 @@ class StockDetail(StockMetaBase, TradableEntity):
 
 
 register_schema(
-    providers=["exchange", "joinquant", "eastmoney", "em", "qmt"], db_name="stock_meta", schema_base=StockMetaBase
+    db_name="stock_meta", schema_base=StockMetaBase
 )
 
 

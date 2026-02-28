@@ -12,7 +12,7 @@ class Stockus1dKdata(KdataBase, StockusKdataCommon):
     __tablename__ = "stockus_1d_kdata"
 
 
-register_schema(providers=["em"], db_name="stockus_1d_kdata", schema_base=KdataBase, entity_type="stockus")
+register_schema(db_name="stockus_1d_kdata", schema_base=KdataBase, entity_type="stockus")
 
 
 # the __all__ is generated

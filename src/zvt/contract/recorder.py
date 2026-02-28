@@ -29,11 +29,18 @@ from zvt.utils.utils import fill_domain_from_dict
 class Meta(type):
     def __new__(meta, name, bases, class_dict):
         cls = type.__new__(meta, name, bases, class_dict)
-        # register the recorder class to the data_schema
         if hasattr(cls, "data_schema") and hasattr(cls, "provider"):
             if cls.data_schema and issubclass(cls.data_schema, Mixin):
-                print(f"{cls.__name__}:{cls.data_schema.__name__}")
                 cls.data_schema.register_recorder_cls(cls.provider, cls)
+                # Update zvt_context for provider routing (Phase 3)
+                from zvt.contract import zvt_context
+                if cls.provider not in zvt_context.providers:
+                    zvt_context.providers.append(cls.provider)
+                if not zvt_context.provider_map_dbnames.get(cls.provider):
+                    zvt_context.provider_map_dbnames[cls.provider] = []
+                db_name = getattr(cls.data_schema, "_zvt_db_name", None)
+                if db_name and db_name not in zvt_context.provider_map_dbnames[cls.provider]:
+                    zvt_context.provider_map_dbnames[cls.provider].append(db_name)
         return cls
 
 
@@ -55,9 +62,9 @@ class Recorder(OneStateService, metaclass=Meta):
 
         assert self.provider is not None
         assert self.data_schema is not None
-        if self.provider not in self.data_schema.providers:
+        if self.provider not in self.data_schema.get_providers():
             self.logger.error(
-                f"provider: {self.provider} is not registered for {self.data_schema}({self.data_schema.providers})"
+                f"provider: {self.provider} is not registered for {self.data_schema}({self.data_schema.get_providers()})"
             )
             assert False
 

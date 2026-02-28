@@ -45,7 +45,7 @@ class StockHotTopic(NewsBase, Mixin):
     news_analysis = Column(JSON)
 
 
-register_schema(providers=["em"], db_name="stock_news", schema_base=NewsBase, entity_type="stock")
+register_schema(db_name="stock_news", schema_base=NewsBase, entity_type="stock")
 
 
 # the __all__ is generated

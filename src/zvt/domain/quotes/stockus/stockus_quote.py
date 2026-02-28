@@ -58,7 +58,7 @@ class Stockus1mQuote(StockusQuoteBase, Mixin):
     is_limit_down = Column(Boolean)
 
 
-register_schema(providers=["em"], db_name="stockus_quote", schema_base=StockusQuoteBase, entity_type="stockus")
+register_schema(db_name="stockus_quote", schema_base=StockusQuoteBase, entity_type="stockus")
 
 
 # the __all__ is generated

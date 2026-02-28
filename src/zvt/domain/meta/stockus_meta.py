@@ -45,7 +45,7 @@ class Stockus(StockusMetaBase, TradableEntity):
         return [("09:30", "16:00")]
 
 
-register_schema(providers=["em"], db_name="stockus_meta", schema_base=StockusMetaBase)
+register_schema(db_name="stockus_meta", schema_base=StockusMetaBase)
 
 
 # the __all__ is generated

@@ -12,7 +12,6 @@ def gen_kdata_schemas():
     # A股行情
     gen_kdata_schema(
         pkg="zvt",
-        providers=["em", "qmt", "joinquant"],
         entity_type="stock",
         levels=[
             level for level in IntervalLevel if level not in (IntervalLevel.LEVEL_L2_QUOTE, IntervalLevel.LEVEL_TICK)
@@ -23,7 +22,6 @@ def gen_kdata_schemas():
     # 中国期货
     gen_kdata_schema(
         pkg="zvt",
-        providers=["em"],
         entity_type="future",
         levels=[IntervalLevel.LEVEL_1DAY],
         entity_in_submodule=True,
@@ -32,7 +30,6 @@ def gen_kdata_schemas():
     # 美股
     gen_kdata_schema(
         pkg="zvt",
-        providers=["em"],
         entity_type="stockus",
         levels=[IntervalLevel.LEVEL_1DAY],
         adjust_types=[None, AdjustType.hfq],
@@ -41,7 +38,6 @@ def gen_kdata_schemas():
     # 美指
     gen_kdata_schema(
         pkg="zvt",
-        providers=["em"],
         entity_type="indexus",
         levels=[IntervalLevel.LEVEL_1DAY],
         entity_in_submodule=True,
@@ -50,7 +46,6 @@ def gen_kdata_schemas():
     # 港股
     gen_kdata_schema(
         pkg="zvt",
-        providers=["em"],
         entity_type="stockhk",
         levels=[IntervalLevel.LEVEL_1DAY],
         adjust_types=[None, AdjustType.hfq],
@@ -60,7 +55,6 @@ def gen_kdata_schemas():
     # 板块行情
     gen_kdata_schema(
         pkg="zvt",
-        providers=["em"],
         entity_type="block",
         levels=[IntervalLevel.LEVEL_1DAY, IntervalLevel.LEVEL_1WEEK, IntervalLevel.LEVEL_1MON],
         entity_in_submodule=True,
@@ -69,7 +63,6 @@ def gen_kdata_schemas():
     # A股指数行情
     gen_kdata_schema(
         pkg="zvt",
-        providers=["em", "sina"],
         entity_type="index",
         levels=[IntervalLevel.LEVEL_1DAY, IntervalLevel.LEVEL_1WEEK],
         entity_in_submodule=True,
@@ -77,12 +70,12 @@ def gen_kdata_schemas():
 
     # etf行情
     gen_kdata_schema(
-        pkg="zvt", providers=["sina"], entity_type="etf", levels=[IntervalLevel.LEVEL_1DAY], entity_in_submodule=True
+        pkg="zvt", entity_type="etf", levels=[IntervalLevel.LEVEL_1DAY], entity_in_submodule=True
     )
 
     # currency行情
     gen_kdata_schema(
-        pkg="zvt", providers=["em"], entity_type="currency", levels=[IntervalLevel.LEVEL_1DAY], entity_in_submodule=True
+        pkg="zvt", entity_type="currency", levels=[IntervalLevel.LEVEL_1DAY], entity_in_submodule=True
     )
 
 

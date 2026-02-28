@@ -30,7 +30,7 @@ class StockQuoteLog(StockQuoteLogBase, StockKdataCommon):
     total_cap = Column(Float)
 
 
-register_schema(providers=["qmt"], db_name="stock_quote_log", schema_base=StockQuoteLogBase, entity_type="stock")
+register_schema(db_name="stock_quote_log", schema_base=StockQuoteLogBase, entity_type="stock")
 
 
 # the __all__ is generated

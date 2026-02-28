@@ -70,7 +70,7 @@ class RightsIssueDetail(DividendFinancingBase, Mixin):
 
 
 register_schema(
-    providers=["eastmoney"], db_name="dividend_financing", schema_base=DividendFinancingBase, entity_type="stock"
+    db_name="dividend_financing", schema_base=DividendFinancingBase, entity_type="stock"
 )
 
 

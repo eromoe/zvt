@@ -12,7 +12,7 @@ class Block1monKdata(KdataBase, BlockKdataCommon):
     __tablename__ = "block_1mon_kdata"
 
 
-register_schema(providers=["em"], db_name="block_1mon_kdata", schema_base=KdataBase, entity_type="block")
+register_schema(db_name="block_1mon_kdata", schema_base=KdataBase, entity_type="block")
 
 
 # the __all__ is generated

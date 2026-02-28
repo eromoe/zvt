@@ -44,7 +44,7 @@ class Stockhk(StockhkMetaBase, TradableEntity):
             return [("09:30", "12:00"), ("13:00", "16:00")]
 
 
-register_schema(providers=["em"], db_name="stockhk_meta", schema_base=StockhkMetaBase)
+register_schema(db_name="stockhk_meta", schema_base=StockhkMetaBase)
 
 
 # the __all__ is generated

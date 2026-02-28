@@ -23,7 +23,7 @@ class Indexhk(IndexhkMetaBase, Portfolio):
     base_point = Column(Float)
 
 
-register_schema(providers=["em"], db_name="indexhk_meta", schema_base=IndexhkMetaBase)
+register_schema(db_name="indexhk_meta", schema_base=IndexhkMetaBase)
 
 
 # the __all__ is generated

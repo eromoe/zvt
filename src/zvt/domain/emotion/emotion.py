@@ -82,7 +82,7 @@ class Emotion(EmotionBase, Mixin):
     limit_down_success_rate = Column(Float)
 
 
-register_schema(providers=["jqka"], db_name="emotion", schema_base=EmotionBase)
+register_schema(db_name="emotion", schema_base=EmotionBase)
 
 
 # the __all__ is generated

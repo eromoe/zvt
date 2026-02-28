@@ -14,7 +14,7 @@ class CBond(CBondBase, TradableEntity):
     __tablename__ = "cbond"
 
 
-register_schema(providers=["em"], db_name="cbond_meta", schema_base=CBondBase)
+register_schema(db_name="cbond_meta", schema_base=CBondBase)
 
 
 # the __all__ is generated

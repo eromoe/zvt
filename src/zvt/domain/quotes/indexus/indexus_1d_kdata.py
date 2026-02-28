@@ -12,7 +12,7 @@ class Indexus1dKdata(KdataBase, IndexusKdataCommon):
     __tablename__ = "indexus_1d_kdata"
 
 
-register_schema(providers=["em"], db_name="indexus_1d_kdata", schema_base=KdataBase, entity_type="indexus")
+register_schema(db_name="indexus_1d_kdata", schema_base=KdataBase, entity_type="indexus")
 
 
 # the __all__ is generated

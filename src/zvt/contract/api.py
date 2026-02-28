@@ -17,6 +17,9 @@ from zvt.contract import zvt_context
 from zvt.contract.schema import Mixin, TradableEntity
 from zvt.contract.storage import get_storage_backend
 from zvt.contract.route_registry import get_route_registry
+from zvt.contract.register import ensure_schema_tables_and_indexes
+
+_initialized_storage_ids = set()
 
 
 def _storage_backend():
@@ -47,13 +50,8 @@ def get_db_engine(
     provider: str, db_name: str = None, data_schema: object = None, data_path: str = None
 ) -> Engine:
     """
-    get db engine from (provider,db_name) or (provider,data_schema)
-
-    :param provider: data provider
-    :param db_name: db name
-    :param data_schema: data schema
-    :param data_path: base path for data files; defaults to zvt_env["data_path"]
-    :return: db engine
+    get db engine from (provider,db_name) or (provider,data_schema).
+    Creates tables and indexes on first use (lazy init).
     """
     if data_schema:
         db_name = _get_db_name(data_schema=data_schema)
@@ -62,20 +60,44 @@ def get_db_engine(
         data_path = zvt_env.get("data_path", ".")
 
     storage_id = _route_registry().get_storage_id(provider, db_name)
-    return _storage_backend().get_engine(storage_id, data_path)
+    engine = _storage_backend().get_engine(storage_id, data_path)
+
+    if storage_id not in _initialized_storage_ids:
+        schema_base = zvt_context.dbname_map_base.get(db_name)
+        if schema_base:
+            ensure_schema_tables_and_indexes(engine, schema_base, db_name)
+        _initialized_storage_ids.add(storage_id)
+
+    return engine
+
+
+def _ensure_schema_providers_loaded():
+    """Populate zvt_context from config schema_providers for schemas without Recorders."""
+    if getattr(_ensure_schema_providers_loaded, "_done", False):
+        return
+    try:
+        from zvt import zvt_config
+        schema_providers = (zvt_config.get("storage") or {}).get("schema_providers") or {}
+        for db_name, providers in schema_providers.items():
+            for p in providers:
+                if p not in zvt_context.providers:
+                    zvt_context.providers.append(p)
+                if p not in zvt_context.provider_map_dbnames:
+                    zvt_context.provider_map_dbnames[p] = []
+                if db_name not in zvt_context.provider_map_dbnames[p]:
+                    zvt_context.provider_map_dbnames[p].append(db_name)
+    except Exception:
+        pass
+    _ensure_schema_providers_loaded._done = True
 
 
 def get_providers() -> List[str]:
+    _ensure_schema_providers_loaded()
     return zvt_context.providers
 
 
 def get_schemas(provider: str) -> List[DeclarativeMeta]:
-    """
-    get domain schemas supported by the provider
-
-    :param provider: data provider
-    :return: schemas provided by the provider
-    """
+    _ensure_schema_providers_loaded()
     schemas = []
     for provider1, dbs in zvt_context.provider_map_dbnames.items():
         if provider == provider1:
@@ -101,7 +123,9 @@ def get_db_session(provider: str, db_name: str = None, data_schema: object = Non
 
     data_path = zvt_env.get("data_path", ".")
     storage_id = _route_registry().get_storage_id(provider, db_name)
+    engine = get_db_engine(provider=provider, db_name=db_name)
     session_fac = _storage_backend().get_session_factory(storage_id, data_path)
+    session_fac.configure(bind=engine)
 
     if force_new:
         return session_fac()
@@ -118,18 +142,16 @@ def get_db_session(provider: str, db_name: str = None, data_schema: object = Non
 def get_db_session_factory(provider: str, db_name: str = None, data_schema: object = None):
     """
     get db session factory from (provider,db_name) or (provider,data_schema)
-
-    :param provider: data provider
-    :param db_name: db name
-    :param data_schema: data schema
-    :return: db session factory
     """
     if data_schema:
         db_name = _get_db_name(data_schema=data_schema)
 
+    engine = get_db_engine(provider=provider, db_name=db_name)
     data_path = zvt_env.get("data_path", ".")
     storage_id = _route_registry().get_storage_id(provider, db_name)
-    return _storage_backend().get_session_factory(storage_id, data_path)
+    session_fac = _storage_backend().get_session_factory(storage_id, data_path)
+    session_fac.configure(bind=engine)
+    return session_fac
 
 
 DBSession = get_db_session_factory
@@ -223,7 +245,7 @@ def del_data(data_schema: Type[Mixin], filters: List = None, provider=None):
     :param provider: data provider
     """
     if not provider:
-        provider = data_schema.providers[0]
+        provider = data_schema.get_providers()[0]
 
     session = get_db_session(provider=provider, data_schema=data_schema)
     query = session.query(data_schema)
@@ -244,10 +266,11 @@ def get_by_id(data_schema, id: str, provider: str = None, session: Session = Non
     :param session: db session
     :return: the record of the id
     """
-    if "providers" not in data_schema.__dict__:
-        logger.error("no provider registered for: {}", data_schema)
+    providers = data_schema.get_providers()
+    if not providers:
+        raise ValueError(f"no provider registered for: {data_schema}")
     if not provider:
-        provider = data_schema.providers[0]
+        provider = providers[0]
 
     if not session:
         session = get_db_session(provider=provider, data_schema=data_schema)
@@ -310,10 +333,11 @@ def get_data(
     :param time_field:
     :return: results basing on return_type.
     """
-    if "providers" not in data_schema.__dict__:
-        logger.error("no provider registered for: {}", data_schema)
+    providers = data_schema.get_providers()
+    if not providers:
+        raise ValueError(f"no provider registered for: {data_schema}")
     if not provider:
-        provider = data_schema.providers[0]
+        provider = providers[0]
 
     if not session:
         session = get_db_session(provider=provider, data_schema=data_schema)
@@ -433,7 +457,7 @@ def get_group(provider, data_schema, column, group_func=func.count, session=None
         query = session.query(column, group_func(column)).group_by(column)
     else:
         query = session.query(column).group_by(column)
-    df = pd.read_sql(query.statement, query.session.bind)
+    df = pd.read_sql(query.statement, session.bind)
     return df
 
 
@@ -621,7 +645,7 @@ def get_entities(
         entity_schema = zvt_context.tradable_schema_map[entity_type]
 
     if not provider:
-        provider = entity_schema.providers[0]
+        provider = entity_schema.get_providers()[0]
 
     if not order:
         order = entity_schema.code.asc()

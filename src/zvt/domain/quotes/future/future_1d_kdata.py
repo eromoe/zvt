@@ -12,7 +12,7 @@ class Future1dKdata(KdataBase, FutureKdataCommon):
     __tablename__ = "future_1d_kdata"
 
 
-register_schema(providers=["em"], db_name="future_1d_kdata", schema_base=KdataBase, entity_type="future")
+register_schema(db_name="future_1d_kdata", schema_base=KdataBase, entity_type="future")
 
 
 # the __all__ is generated

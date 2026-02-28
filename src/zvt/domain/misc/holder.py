@@ -93,7 +93,7 @@ class InstitutionalInvestorHolder(HolderBase, Mixin):
     shareholding_ratio = Column(Float)
 
 
-register_schema(providers=["eastmoney", "joinquant"], db_name="holder", schema_base=HolderBase, entity_type="stock")
+register_schema(db_name="holder", schema_base=HolderBase, entity_type="stock")
 
 
 # the __all__ is generated

@@ -47,7 +47,7 @@ class QueryStockQuoteSetting(TradingBase, Mixin):
     main_tags = Column(JSON)
 
 
-register_schema(providers=["zvt"], db_name="stock_trading", schema_base=TradingBase)
+register_schema(db_name="stock_trading", schema_base=TradingBase)
 
 
 # the __all__ is generated

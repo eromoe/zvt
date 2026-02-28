@@ -12,7 +12,7 @@ class Future(FutureMetaBase, TradableEntity):
     __tablename__ = "future"
 
 
-register_schema(providers=["em"], db_name="future_meta", schema_base=FutureMetaBase)
+register_schema(db_name="future_meta", schema_base=FutureMetaBase)
 
 
 # the __all__ is generated

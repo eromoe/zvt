@@ -22,7 +22,7 @@ class BlockusStockus(BlockusMetaBase, PortfolioStock):
     __tablename__ = "blockus_stockus"
 
 
-register_schema(providers=["em"], db_name="blockus_meta", schema_base=BlockusMetaBase)
+register_schema(db_name="blockus_meta", schema_base=BlockusMetaBase)
 
 
 # the __all__ is generated

@@ -54,7 +54,7 @@ class FundStock(FundMetaBase, PortfolioStockHistory):
     __tablename__ = "fund_stock"
 
 
-register_schema(providers=["joinquant"], db_name="fund_meta", schema_base=FundMetaBase)
+register_schema(db_name="fund_meta", schema_base=FundMetaBase)
 
 
 # the __all__ is generated

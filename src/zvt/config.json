@@ -18,6 +18,18 @@
   "storage": {
     "base_path": null,
     "path_template": null,
-    "storage_routes": {}
+    "storage_routes": {},
+    "schema_providers": {
+      "zvt_info": ["zvt"],
+      "trader_info": ["zvt"],
+      "stock_tags": ["zvt"],
+      "stock_trading": ["zvt"],
+      "stock_1d_ma_factor": ["zvt"],
+      "stock_1d_ma_stats_factor": ["zvt"],
+      "stock_1d_zen_factor": ["zvt"],
+      "stock_1wk_zen_factor": ["zvt"],
+      "index_1d_zen_factor": ["zvt"],
+      "top_stocks": ["zvt"]
+    }
   }
 }

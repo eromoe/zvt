@@ -187,7 +187,6 @@ def gen_exports(
 
 def gen_kdata_schema(
     pkg: str,
-    providers: List[str],
     entity_type: str,
     levels: List[IntervalLevel],
     adjust_types=None,
@@ -209,7 +208,6 @@ def gen_kdata_schema(
         logger.info(f"create dir {base_path}")
         os.makedirs(base_path)
 
-    providers_str = f"{providers}".replace("'", '"')
     for level in levels:
         for adjust_type in adjust_types:
             level = IntervalLevel(level)
@@ -243,7 +241,7 @@ class {class_name}(KdataBase, {kdata_common}):
     __tablename__ = "{table_name}"
 
 
-register_schema(providers={providers_str}, db_name="{table_name}", schema_base=KdataBase, entity_type="{entity_type}")
+register_schema(db_name="{table_name}", schema_base=KdataBase, entity_type="{entity_type}")
 
 """
             # generate the schema

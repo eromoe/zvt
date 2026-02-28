@@ -57,27 +57,29 @@ class Mixin(object):
 
     @classmethod
     def register_provider(cls, provider):
-        """
-        register the provider to the schema defined by cls
-
-        :param provider:
-        """
-        # don't make providers as class field,it should be created for the sub class as need
-        if not hasattr(cls, "providers"):
-            cls.providers = []
-
-        if provider not in cls.providers:
-            cls.providers.append(provider)
+        """(Deprecated) Providers now come from Recorder registration."""
+        if not hasattr(cls, "_zvt_providers_override"):
+            cls._zvt_providers_override = []
+        if provider not in cls._zvt_providers_override:
+            cls._zvt_providers_override.append(provider)
 
     @classmethod
     def get_providers(cls) -> List[str]:
         """
-        providers of the schema defined by cls
-
-        :return: providers
+        Providers: from provider_map_recorder (Recorder registration), or config storage.schema_providers.
         """
-        assert hasattr(cls, "providers")
-        return cls.providers
+        if hasattr(cls, "provider_map_recorder") and cls.provider_map_recorder:
+            return list(cls.provider_map_recorder.keys())
+        try:
+            from zvt import zvt_config
+            db_name = getattr(cls, "_zvt_db_name", None)
+            if db_name:
+                schema_providers = (zvt_config.get("storage") or {}).get("schema_providers") or {}
+                if db_name in schema_providers:
+                    return schema_providers[db_name]
+        except Exception:
+            pass
+        return getattr(cls, "_zvt_providers_override", []) or []
 
     @classmethod
     def test_data_correctness(cls, provider, data_samples):
@@ -95,7 +97,7 @@ class Mixin(object):
         from .api import get_by_id
 
         if not provider:
-            provider = cls.providers[provider_index]
+            provider = cls.get_providers()[provider_index]
         return get_by_id(data_schema=cls, id=id, provider=provider)
 
     @classmethod
@@ -152,7 +154,7 @@ class Mixin(object):
         from .api import get_data
 
         if not provider:
-            provider = cls.providers[provider_index]
+            provider = cls.get_providers()[provider_index]
         return get_data(
             data_schema=cls,
             ids=ids,
@@ -244,7 +246,7 @@ class Mixin(object):
             if provider:
                 recorder_class = cls.provider_map_recorder[provider]
             else:
-                recorder_class = cls.provider_map_recorder[cls.providers[provider_index]]
+                recorder_class = cls.provider_map_recorder[cls.get_providers()[provider_index]]
 
             # get args for specific recorder class
             from zvt.contract.recorder import TimeSeriesDataRecorder

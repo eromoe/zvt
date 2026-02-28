@@ -63,9 +63,6 @@ def init_main_index(provider="exchange"):
     df_to_db(df=df, data_schema=Index, provider=provider, force_update=False)
 
 
-init_main_index(provider="exchange")
-
-
 # the __all__ is generated
 __all__ = ["init_main_index"]
 
@@ -120,3 +117,6 @@ from .sina import *
 from .sina import __all__ as _sina_all
 
 __all__ += _sina_all
+
+# Recorders must be imported before schema use (providers derived from Recorder registration)
+init_main_index(provider="exchange")

@@ -11,7 +11,7 @@ class Stock1dZenFactor(Stock1dZenFactorBase, ZenFactorCommon):
     __tablename__ = "stock_1d_zen_factor"
 
 
-register_schema(providers=["zvt"], db_name="stock_1d_zen_factor", schema_base=Stock1dZenFactorBase, entity_type="stock")
+register_schema(db_name="stock_1d_zen_factor", schema_base=Stock1dZenFactorBase, entity_type="stock")
 
 
 # the __all__ is generated

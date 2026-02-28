@@ -13,7 +13,7 @@ class Currency(CurrencyMetaBase, TradableEntity):
     __tablename__ = "currency"
 
 
-register_schema(providers=["em"], db_name="currency_meta", schema_base=CurrencyMetaBase)
+register_schema(db_name="currency_meta", schema_base=CurrencyMetaBase)
 
 
 # the __all__ is generated

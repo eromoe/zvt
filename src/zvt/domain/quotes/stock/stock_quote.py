@@ -56,7 +56,7 @@ class Stock1mQuote(StockQuoteBase, Mixin):
     is_limit_down = Column(Boolean)
 
 
-register_schema(providers=["qmt"], db_name="stock_quote", schema_base=StockQuoteBase, entity_type="stock")
+register_schema(db_name="stock_quote", schema_base=StockQuoteBase, entity_type="stock")
 
 
 # the __all__ is generated

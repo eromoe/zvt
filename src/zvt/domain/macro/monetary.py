@@ -23,7 +23,7 @@ class TreasuryYield(MonetaryBase, Mixin):
     yield_30 = Column(Float)
 
 
-register_schema(providers=["em"], db_name="monetary", schema_base=MonetaryBase)
+register_schema(db_name="monetary", schema_base=MonetaryBase)
 
 
 # the __all__ is generated

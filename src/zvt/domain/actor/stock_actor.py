@@ -76,7 +76,7 @@ class StockActorSummary(StockActorBase, TradableMeetActor):
     holding_values = Column(Float)
 
 
-register_schema(providers=["em"], db_name="stock_actor", schema_base=StockActorBase, entity_type="stock")
+register_schema(db_name="stock_actor", schema_base=StockActorBase, entity_type="stock")
 
 
 # the __all__ is generated

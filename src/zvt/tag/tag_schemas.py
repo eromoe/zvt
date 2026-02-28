@@ -127,7 +127,7 @@ class TagStats(StockTagsBase, Mixin):
     entity_ids = Column(JSON)
 
 
-register_schema(providers=["zvt"], db_name="stock_tags", schema_base=StockTagsBase)
+register_schema(db_name="stock_tags", schema_base=StockTagsBase)
 
 
 # the __all__ is generated

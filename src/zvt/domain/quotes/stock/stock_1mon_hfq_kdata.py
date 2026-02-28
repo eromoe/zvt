@@ -13,7 +13,7 @@ class Stock1monHfqKdata(KdataBase, StockKdataCommon):
 
 
 register_schema(
-    providers=["em", "qmt", "joinquant"], db_name="stock_1mon_hfq_kdata", schema_base=KdataBase, entity_type="stock"
+    db_name="stock_1mon_hfq_kdata", schema_base=KdataBase, entity_type="stock"
 )
 
 
