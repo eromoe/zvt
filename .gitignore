@@ -95,6 +95,9 @@ ENV/
 
 /zvt-home
 /zvt-test-home
+
+# Local/VIP extensions (not part of open source)
+zvt_vip/
 *.tar.gz
 
 .pytest_cache/

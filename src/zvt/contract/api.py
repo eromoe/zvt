@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-import json
 import logging
-import os
 import platform
 from typing import List, Union, Type
 
 import pandas as pd
-from sqlalchemy import create_engine
 from sqlalchemy import func, exists, and_
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -18,6 +15,16 @@ from zvt import zvt_env
 from zvt.contract import IntervalLevel
 from zvt.contract import zvt_context
 from zvt.contract.schema import Mixin, TradableEntity
+from zvt.contract.storage import get_storage_backend
+from zvt.contract.route_registry import get_route_registry
+
+
+def _storage_backend():
+    return zvt_context.storage_backend or get_storage_backend()
+
+
+def _route_registry():
+    return zvt_context.route_registry or get_route_registry()
 from zvt.utils.pd_utils import pd_is_not_null, index_df
 from zvt.utils.time_utils import to_pd_timestamp
 
@@ -37,7 +44,7 @@ def _get_db_name(data_schema: DeclarativeMeta) -> str:
 
 
 def get_db_engine(
-    provider: str, db_name: str = None, data_schema: object = None, data_path: str = zvt_env["data_path"]
+    provider: str, db_name: str = None, data_schema: object = None, data_path: str = None
 ) -> Engine:
     """
     get db engine from (provider,db_name) or (provider,data_schema)
@@ -45,25 +52,17 @@ def get_db_engine(
     :param provider: data provider
     :param db_name: db name
     :param data_schema: data schema
-    :param data_path: data path
+    :param data_path: base path for data files; defaults to zvt_env["data_path"]
     :return: db engine
     """
     if data_schema:
         db_name = _get_db_name(data_schema=data_schema)
 
-    provider_path = os.path.join(data_path, provider)
-    if not os.path.exists(provider_path):
-        os.makedirs(provider_path)
-    db_path = os.path.join(provider_path, "{}_{}.db?check_same_thread=False".format(provider, db_name))
+    if data_path is None:
+        data_path = zvt_env.get("data_path", ".")
 
-    engine_key = "{}_{}".format(provider, db_name)
-    db_engine = zvt_context.db_engine_map.get(engine_key)
-    if not db_engine:
-        db_engine = create_engine(
-            "sqlite:///" + db_path, echo=False, json_serializer=lambda obj: json.dumps(obj, ensure_ascii=False)
-        )
-        zvt_context.db_engine_map[engine_key] = db_engine
-    return db_engine
+    storage_id = _route_registry().get_storage_id(provider, db_name)
+    return _storage_backend().get_engine(storage_id, data_path)
 
 
 def get_providers() -> List[str]:
@@ -100,15 +99,18 @@ def get_db_session(provider: str, db_name: str = None, data_schema: object = Non
     if data_schema:
         db_name = _get_db_name(data_schema=data_schema)
 
-    session_key = "{}_{}".format(provider, db_name)
+    data_path = zvt_env.get("data_path", ".")
+    storage_id = _route_registry().get_storage_id(provider, db_name)
+    session_fac = _storage_backend().get_session_factory(storage_id, data_path)
 
     if force_new:
-        return get_db_session_factory(provider, db_name, data_schema)()
+        return session_fac()
 
+    session_key = storage_id
     session = zvt_context.sessions.get(session_key)
     # FIXME: should not maintain global session
     if not session:
-        session = get_db_session_factory(provider, db_name, data_schema)()
+        session = session_fac()
         zvt_context.sessions[session_key] = session
     return session
 
@@ -125,12 +127,9 @@ def get_db_session_factory(provider: str, db_name: str = None, data_schema: obje
     if data_schema:
         db_name = _get_db_name(data_schema=data_schema)
 
-    session_key = "{}_{}".format(provider, db_name)
-    session = zvt_context.db_session_map.get(session_key)
-    if not session:
-        session = sessionmaker()
-        zvt_context.db_session_map[session_key] = session
-    return session
+    data_path = zvt_env.get("data_path", ".")
+    storage_id = _route_registry().get_storage_id(provider, db_name)
+    return _storage_backend().get_session_factory(storage_id, data_path)
 
 
 DBSession = get_db_session_factory

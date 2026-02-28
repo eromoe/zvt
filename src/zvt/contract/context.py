@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+ZVT global context. Phase 1: storage_backend and route_registry are optional
+injections; api uses get_storage_backend()/get_route_registry() when not set.
+"""
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from zvt.contract.storage import StorageBackend
+    from zvt.contract.route_registry import RouteRegistry
 
 
 class Registry(object):
@@ -25,10 +34,10 @@ class Registry(object):
         #: global sessions
         self.sessions = {}
 
-        #: provider_dbname -> engine
+        #: provider_dbname -> engine (deprecated: engines now in StorageBackend)
         self.db_engine_map = {}
 
-        #: provider_dbname -> session
+        #: provider_dbname -> session factory (deprecated: now in StorageBackend)
         self.db_session_map = {}
 
         #: provider -> [db_name1,db_name2...]
@@ -45,6 +54,12 @@ class Registry(object):
 
         #: factor class registry
         self.factor_cls_registry = {}
+
+        #: Optional StorageBackend; if set, api uses it instead of get_storage_backend()
+        self.storage_backend: Optional["StorageBackend"] = None
+
+        #: Optional RouteRegistry; if set, api uses it instead of get_route_registry()
+        self.route_registry: Optional["RouteRegistry"] = None
 
 
 #: :class:`~.zvt.contract.context.Registry` instance
