@@ -76,8 +76,8 @@ def _ensure_schema_providers_loaded():
     if getattr(_ensure_schema_providers_loaded, "_done", False):
         return
     try:
-        from zvt import zvt_config
-        schema_providers = (zvt_config.get("storage") or {}).get("schema_providers") or {}
+        from zvt.contract.schema import _get_schema_providers
+        schema_providers = _get_schema_providers()
         for db_name, providers in schema_providers.items():
             for p in providers:
                 if p not in zvt_context.providers:
@@ -118,6 +118,7 @@ def get_db_session(provider: str, db_name: str = None, data_schema: object = Non
     :param force_new: True for new session, otherwise use global session
     :return: db session
     """
+    _ensure_schema_providers_loaded()
     if data_schema:
         db_name = _get_db_name(data_schema=data_schema)
 
@@ -266,6 +267,7 @@ def get_by_id(data_schema, id: str, provider: str = None, session: Session = Non
     :param session: db session
     :return: the record of the id
     """
+    _ensure_schema_providers_loaded()
     providers = data_schema.get_providers()
     if not providers:
         raise ValueError(f"no provider registered for: {data_schema}")
@@ -333,6 +335,7 @@ def get_data(
     :param time_field:
     :return: results basing on return_type.
     """
+    _ensure_schema_providers_loaded()
     providers = data_schema.get_providers()
     if not providers:
         raise ValueError(f"no provider registered for: {data_schema}")

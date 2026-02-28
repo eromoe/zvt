@@ -1,13 +1,33 @@
 # -*- coding: utf-8 -*-
 import inspect
+import json
 from datetime import timedelta
-from typing import List, Union
+from typing import Dict, List, Union
 
 import pandas as pd
+import pkg_resources
 from sqlalchemy import Column, String, DateTime, Float
 from sqlalchemy.orm import Session
 
 from zvt.contract import IntervalLevel
+
+
+def _get_schema_providers() -> Dict[str, List[str]]:
+    """Get schema_providers merged with package default (ensures defaults are available)."""
+    default = {}
+    try:
+        with open(pkg_resources.resource_filename("zvt", "config.json")) as f:
+            default = (json.load(f).get("storage") or {}).get("schema_providers") or {}
+    except Exception:
+        pass
+    try:
+        from zvt import zvt_config
+        user = (zvt_config.get("storage") or {}).get("schema_providers") or {}
+        default = dict(default)
+        default.update(user)
+    except Exception:
+        pass
+    return default
 from zvt.utils.time_utils import date_and_time, is_same_date_time, now_pd_timestamp
 
 
@@ -67,18 +87,16 @@ class Mixin(object):
     def get_providers(cls) -> List[str]:
         """
         Providers: from provider_map_recorder (Recorder registration), or config storage.schema_providers.
+        Only use provider_map_recorder when set on this concrete schema class (cls.__dict__), not inherited
+        from a shared base like KdataCommon - otherwise StockQuote would wrongly get Stock1dKdata's providers.
         """
-        if hasattr(cls, "provider_map_recorder") and cls.provider_map_recorder:
+        if "provider_map_recorder" in cls.__dict__ and cls.provider_map_recorder:
             return list(cls.provider_map_recorder.keys())
-        try:
-            from zvt import zvt_config
-            db_name = getattr(cls, "_zvt_db_name", None)
-            if db_name:
-                schema_providers = (zvt_config.get("storage") or {}).get("schema_providers") or {}
-                if db_name in schema_providers:
-                    return schema_providers[db_name]
-        except Exception:
-            pass
+        db_name = getattr(cls, "_zvt_db_name", None)
+        if db_name:
+            schema_providers = _get_schema_providers()
+            if db_name in schema_providers:
+                return schema_providers[db_name]
         return getattr(cls, "_zvt_providers_override", []) or []
 
     @classmethod
