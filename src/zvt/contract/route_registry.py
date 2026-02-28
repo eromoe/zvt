@@ -2,11 +2,9 @@
 """
 Route registry: maps (provider, db_name) -> storage_id.
 Phase 1: uses deterministic rule storage_id = "{provider}_{db_name}".
-Later: can be extended to read from config.
+Phase 2: supports config file overrides via zvt_config["storage"]["storage_routes"].
 """
 from typing import Optional, Type
-
-from sqlalchemy.ext.declarative import DeclarativeMeta
 
 
 def _get_db_name_from_context(data_schema) -> Optional[str]:
@@ -18,17 +16,46 @@ def _get_db_name_from_context(data_schema) -> Optional[str]:
     return None
 
 
+def _get_storage_config() -> dict:
+    """Load storage config from zvt_config. Lazy import to avoid cycles."""
+    try:
+        from zvt import zvt_config
+        return zvt_config.get("storage") or {}
+    except Exception:
+        return {}
+
+
 class RouteRegistry:
     """
     Maps (provider, db_name) or (provider, data_schema) to storage_id.
-    Phase 1: storage_id = "{provider}_{db_name}".
+    Default: storage_id = "{provider}_{db_name}".
+    Config override: zvt_config["storage"]["storage_routes"]["provider|db_name"] = storage_id.
     """
+
+    def __init__(self) -> None:
+        self._route_overrides: dict = {}
+
+    def register_route(self, provider: str, db_name: str, storage_id: str) -> None:
+        """Register explicit route override. Takes precedence over config."""
+        key = f"{provider}|{db_name}"
+        self._route_overrides[key] = storage_id
+
+    def _get_route_overrides_from_config(self) -> dict:
+        """Merge config storage_routes with programmatic overrides. Config is loaded once."""
+        config = _get_storage_config()
+        routes = dict(config.get("storage_routes") or {})
+        routes.update(self._route_overrides)
+        return routes
 
     def get_storage_id(self, provider: str, db_name: str) -> str:
         """
         Get storage_id for (provider, db_name).
-        Current rule: storage_id = "{provider}_{db_name}".
+        Checks: 1) programmatic overrides 2) config storage_routes 3) default "{provider}_{db_name}".
         """
+        overrides = self._get_route_overrides_from_config()
+        key = f"{provider}|{db_name}"
+        if key in overrides:
+            return overrides[key]
         return f"{provider}_{db_name}"
 
     def get_storage_id_for_schema(

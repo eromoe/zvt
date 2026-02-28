@@ -2,6 +2,7 @@
 """
 Storage abstraction for ZVT.
 Phase 1: StorageBackend interface + SqliteStorageBackend with existing path logic.
+Phase 2: path_template and base_path from config.
 """
 import json
 import logging
@@ -23,6 +24,15 @@ def _default_data_path() -> str:
         return zvt_env.get("data_path", ".")
     except Exception:
         return "."
+
+
+def _get_storage_config() -> dict:
+    """Load storage config from zvt_config. Lazy import to avoid cycles."""
+    try:
+        from zvt import zvt_config
+        return zvt_config.get("storage") or {}
+    except Exception:
+        return {}
 
 
 class StorageBackend(ABC):
@@ -54,32 +64,54 @@ class StorageBackend(ABC):
 
 class SqliteStorageBackend(StorageBackend):
     """
-    SQLite storage backend. Keeps existing path rule:
-    path = {data_path}/{provider}/{provider}_{db_name}.db
-    storage_id = "{provider}_{db_name}"
+    SQLite storage backend. Default path: {data_path}/{provider}/{provider}_{db_name}.db
+    Config (zvt_config["storage"]):
+      - base_path: override data path
+      - path_template: format string with {base_path}, {provider}, {db_name}, {storage_id}
     """
 
-    def __init__(self, path_template: Optional[str] = None):
+    def __init__(self, path_template: Optional[str] = None, base_path: Optional[str] = None):
         """
-        :param path_template: Optional. Format string with placeholders:
-            {base_path}, {provider}, {db_name}. Default uses existing rule.
+        :param path_template: Optional. Overrides config. Placeholders: {base_path}, {provider}, {db_name}, {storage_id}
+        :param base_path: Optional. Overrides config.
         """
-        self.path_template = path_template
+        self._path_template_override = path_template
+        self._base_path_override = base_path
         self._engine_map = {}
         self._session_factory_map = {}
+
+    def _get_path_template(self) -> Optional[str]:
+        """Path template: constructor override > config > None (use default)."""
+        if self._path_template_override is not None:
+            return self._path_template_override
+        config = _get_storage_config()
+        return config.get("path_template")
+
+    def _get_base_path(self, data_path: Optional[str]) -> str:
+        """Base path: param > constructor override > config > zvt_env."""
+        if data_path is not None:
+            return data_path
+        if self._base_path_override is not None:
+            return self._base_path_override
+        config = _get_storage_config()
+        cfg_path = config.get("base_path")
+        if cfg_path is not None:
+            return cfg_path
+        return _default_data_path()
 
     def _storage_id_to_path(self, storage_id: str, data_path: str) -> str:
         """
         Compute SQLite file path from storage_id.
         storage_id format: "{provider}_{db_name}" (e.g. "em_stock_meta").
-        Path: {data_path}/{provider}/{provider}_{db_name}.db
+        Default path: {data_path}/{provider}/{provider}_{db_name}.db
         """
         if "_" not in storage_id:
             raise ValueError(f"Invalid storage_id: {storage_id}, expected '{{provider}}_{{db_name}}'")
         provider, db_name = storage_id.split("_", 1)
-        if self.path_template:
-            return self.path_template.format(
-                base_path=data_path, provider=provider, db_name=db_name
+        path_template = self._get_path_template()
+        if path_template:
+            return path_template.format(
+                base_path=data_path, provider=provider, db_name=db_name, storage_id=storage_id
             )
         provider_dir = os.path.join(data_path, provider)
         if not os.path.exists(provider_dir):
@@ -87,7 +119,7 @@ class SqliteStorageBackend(StorageBackend):
         return os.path.join(provider_dir, f"{provider}_{db_name}.db?check_same_thread=False")
 
     def get_engine(self, storage_id: str, data_path: Optional[str] = None) -> Engine:
-        data_path = data_path or _default_data_path()
+        data_path = self._get_base_path(data_path)
         if storage_id in self._engine_map:
             return self._engine_map[storage_id]
         db_path = self._storage_id_to_path(storage_id, data_path)
@@ -99,7 +131,7 @@ class SqliteStorageBackend(StorageBackend):
         return engine
 
     def get_session_factory(self, storage_id: str, data_path: Optional[str] = None):
-        data_path = data_path or _default_data_path()
+        data_path = self._get_base_path(data_path)
         if storage_id in self._session_factory_map:
             return self._session_factory_map[storage_id]
         fac = sessionmaker()

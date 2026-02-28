@@ -14,5 +14,10 @@
   "qmt_account_id": "",
   "moonshot_api_key": "",
   "qwen_api_key": "",
-  "em_header": ""
+  "em_header": "",
+  "storage": {
+    "base_path": null,
+    "path_template": null,
+    "storage_routes": {}
+  }
 }
