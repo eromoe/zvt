@@ -170,6 +170,10 @@ class BaseEMStockKdataRecorder(FixedCycleDataRecorder):
 class EMStockKdataRecorder(BaseEMStockKdataRecorder):
     entity_schema = Stock
     data_schema = StockKdataCommon
+    supported_levels = [
+        level for level in IntervalLevel if level not in (IntervalLevel.LEVEL_L2_QUOTE, IntervalLevel.LEVEL_TICK)
+    ]
+    supported_adjust_types = [AdjustType.qfq, AdjustType.hfq]
 
     def on_finish_entity(self, entity):
         super().on_finish_entity(entity)
@@ -197,53 +201,58 @@ class EMStockusKdataRecorder(BaseEMStockKdataRecorder):
     entity_provider = "em"
     entity_schema = Stockus
     data_schema = StockusKdataCommon
+    supported_levels = [IntervalLevel.LEVEL_1DAY]
+    supported_adjust_types = [AdjustType.qfq, AdjustType.hfq]
 
 
 class EMStockhkKdataRecorder(BaseEMStockKdataRecorder):
     entity_provider = "em"
     entity_schema = Stockhk
     data_schema = StockhkKdataCommon
+    supported_levels = [IntervalLevel.LEVEL_1DAY]
+    supported_adjust_types = [AdjustType.qfq, AdjustType.hfq]
 
 
 class EMIndexhkKdataRecorder(BaseEMStockKdataRecorder):
     entity_provider = "em"
     entity_schema = Indexhk
     data_schema = IndexhkKdataCommon
+    supported_levels = [IntervalLevel.LEVEL_1DAY]
 
 
 class EMIndexKdataRecorder(BaseEMStockKdataRecorder):
     entity_provider = "em"
     entity_schema = Index
-
     data_schema = IndexKdataCommon
+    supported_levels = [IntervalLevel.LEVEL_1DAY, IntervalLevel.LEVEL_1WEEK]
 
 
 class EMIndexusKdataRecorder(BaseEMStockKdataRecorder):
     entity_provider = "em"
     entity_schema = Indexus
-
     data_schema = IndexusKdataCommon
+    supported_levels = [IntervalLevel.LEVEL_1DAY]
 
 
 class EMBlockKdataRecorder(BaseEMStockKdataRecorder):
     entity_provider = "em"
     entity_schema = Block
-
     data_schema = BlockKdataCommon
+    supported_levels = [IntervalLevel.LEVEL_1DAY, IntervalLevel.LEVEL_1WEEK, IntervalLevel.LEVEL_1MON]
 
 
 class EMFutureKdataRecorder(BaseEMStockKdataRecorder):
     entity_provider = "em"
     entity_schema = Future
-
     data_schema = FutureKdataCommon
+    supported_levels = [IntervalLevel.LEVEL_1DAY]
 
 
 class EMCurrencyKdataRecorder(BaseEMStockKdataRecorder):
     entity_provider = "em"
     entity_schema = Currency
-
     data_schema = CurrencyKdataCommon
+    supported_levels = [IntervalLevel.LEVEL_1DAY]
 
 
 if __name__ == "__main__":

@@ -169,6 +169,8 @@ class BaseQmtKdataRecorder(FixedCycleDataRecorder):
 class QMTStockKdataRecorder(BaseQmtKdataRecorder):
     entity_schema = Stock
     data_schema = StockKdataCommon
+    supported_levels = [IntervalLevel.LEVEL_1DAY]
+    supported_adjust_types = [AdjustType.qfq, AdjustType.hfq]
 
 
 if __name__ == "__main__":

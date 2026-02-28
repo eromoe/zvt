@@ -26,21 +26,65 @@ from zvt.utils.time_utils import (
 from zvt.utils.utils import fill_domain_from_dict
 
 
+def _register_kdata_schemas_for_recorder(cls):
+    """
+    Pre-register concrete kdata schemas (Stock1dKdata, etc.) for recorders that define
+    supported_levels. KdataCommon is a placeholder; the real schemas are per (level, adjust_type).
+    Must have: entity_schema, data_schema (KdataCommon), supported_levels, provider.
+    """
+    if not (
+        hasattr(cls, "entity_schema")
+        and cls.entity_schema
+        and hasattr(cls, "data_schema")
+        and cls.data_schema
+        and cls.data_schema.__name__.endswith("KdataCommon")
+        and hasattr(cls, "supported_levels")
+        and cls.supported_levels
+        and hasattr(cls, "provider")
+        and cls.provider
+    ):
+        return False
+    from zvt.api.kdata import get_kdata_schema
+    from zvt.contract import zvt_context
+
+    entity_type = cls.entity_schema.__name__.lower()
+    adjust_types = getattr(cls, "supported_adjust_types", [None])
+    for level in cls.supported_levels:
+        for adjust_type in adjust_types:
+            try:
+                schema = get_kdata_schema(entity_type=entity_type, level=level, adjust_type=adjust_type)
+                if schema:
+                    schema.register_recorder_cls(cls.provider, cls)
+                    db_name = getattr(schema, "_zvt_db_name", None)
+                    if db_name:
+                        if cls.provider not in zvt_context.providers:
+                            zvt_context.providers.append(cls.provider)
+                        if not zvt_context.provider_map_dbnames.get(cls.provider):
+                            zvt_context.provider_map_dbnames[cls.provider] = []
+                        if db_name not in zvt_context.provider_map_dbnames[cls.provider]:
+                            zvt_context.provider_map_dbnames[cls.provider].append(db_name)
+            except Exception:
+                pass
+    return True
+
+
 class Meta(type):
     def __new__(meta, name, bases, class_dict):
         cls = type.__new__(meta, name, bases, class_dict)
         if hasattr(cls, "data_schema") and hasattr(cls, "provider"):
             if cls.data_schema and issubclass(cls.data_schema, Mixin):
-                cls.data_schema.register_recorder_cls(cls.provider, cls)
-                # Update zvt_context for provider routing (Phase 3)
-                from zvt.contract import zvt_context
-                if cls.provider not in zvt_context.providers:
-                    zvt_context.providers.append(cls.provider)
-                if not zvt_context.provider_map_dbnames.get(cls.provider):
-                    zvt_context.provider_map_dbnames[cls.provider] = []
-                db_name = getattr(cls.data_schema, "_zvt_db_name", None)
-                if db_name and db_name not in zvt_context.provider_map_dbnames[cls.provider]:
-                    zvt_context.provider_map_dbnames[cls.provider].append(db_name)
+                if _register_kdata_schemas_for_recorder(cls):
+                    pass
+                else:
+                    cls.data_schema.register_recorder_cls(cls.provider, cls)
+                    from zvt.contract import zvt_context
+                    if cls.provider not in zvt_context.providers:
+                        zvt_context.providers.append(cls.provider)
+                    if not zvt_context.provider_map_dbnames.get(cls.provider):
+                        zvt_context.provider_map_dbnames[cls.provider] = []
+                    db_name = getattr(cls.data_schema, "_zvt_db_name", None)
+                    if db_name and db_name not in zvt_context.provider_map_dbnames[cls.provider]:
+                        zvt_context.provider_map_dbnames[cls.provider].append(db_name)
         return cls
 
 
@@ -62,6 +106,17 @@ class Recorder(OneStateService, metaclass=Meta):
 
         assert self.provider is not None
         assert self.data_schema is not None
+        # Register concrete schema for kdata Recorders that set data_schema in __init__
+        # (e.g. via get_kdata_schema); metaclass only runs at class-def time when data_schema may be None
+        self.data_schema.register_recorder_cls(self.provider, self.__class__)
+        from zvt.contract import zvt_context
+        if self.provider not in zvt_context.providers:
+            zvt_context.providers.append(self.provider)
+        if not zvt_context.provider_map_dbnames.get(self.provider):
+            zvt_context.provider_map_dbnames[self.provider] = []
+        db_name = getattr(self.data_schema, "_zvt_db_name", None)
+        if db_name and db_name not in zvt_context.provider_map_dbnames[self.provider]:
+            zvt_context.provider_map_dbnames[self.provider].append(db_name)
         if self.provider not in self.data_schema.get_providers():
             self.logger.error(
                 f"provider: {self.provider} is not registered for {self.data_schema}({self.data_schema.get_providers()})"

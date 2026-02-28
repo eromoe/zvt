@@ -5,7 +5,7 @@ from jqdatapy.api import get_token, get_bars
 
 from zvt import zvt_config
 from zvt.api.kdata import generate_kdata_id, get_kdata_schema, get_kdata
-from zvt.contract import IntervalLevel, AdjustType
+from zvt.contract import IntervalLevel, AdjustType, AdjustType
 from zvt.contract.api import df_to_db
 from zvt.contract.recorder import FixedCycleDataRecorder
 from zvt.domain import Stock, StockKdataCommon, Stock1wkHfqKdata
@@ -23,6 +23,10 @@ class JqChinaStockKdataRecorder(FixedCycleDataRecorder):
 
     # 只是为了把recorder注册到data_schema
     data_schema = StockKdataCommon
+    supported_levels = [
+        level for level in IntervalLevel if level not in (IntervalLevel.LEVEL_L2_QUOTE, IntervalLevel.LEVEL_TICK)
+    ]
+    supported_adjust_types = [AdjustType.qfq, AdjustType.hfq]
 
     def __init__(
         self,

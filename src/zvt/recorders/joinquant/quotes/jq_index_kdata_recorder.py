@@ -24,6 +24,7 @@ class JqChinaIndexKdataRecorder(FixedCycleDataRecorder):
 
     # 只是为了把recorder注册到data_schema
     data_schema = IndexKdataCommon
+    supported_levels = [IntervalLevel.LEVEL_1DAY, IntervalLevel.LEVEL_1WEEK]
 
     def __init__(
         self,
