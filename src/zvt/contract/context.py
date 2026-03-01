@@ -55,6 +55,9 @@ class Registry(object):
         #: factor class registry
         self.factor_cls_registry = {}
 
+        #: db_names of internal schemas (business logic data, not tied to external data source)
+        self.internal_db_names = set()
+
         #: Optional StorageBackend; if set, api uses it instead of get_storage_backend()
         self.storage_backend: Optional["StorageBackend"] = None
 

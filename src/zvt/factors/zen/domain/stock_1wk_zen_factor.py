@@ -12,7 +12,7 @@ class Stock1wkZenFactor(Stock1wkZenFactorBase, ZenFactorCommon):
 
 
 register_schema(
-    db_name="stock_1wk_zen_factor", schema_base=Stock1wkZenFactorBase, entity_type="stock"
+    db_name="stock_1wk_zen_factor", schema_base=Stock1wkZenFactorBase, entity_type="stock", internal=True
 )
 
 

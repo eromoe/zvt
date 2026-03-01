@@ -11,7 +11,7 @@ class Index1dZenFactor(Index1dZenFactorBase, ZenFactorCommon):
     __tablename__ = "index_1d_zen_factor"
 
 
-register_schema(db_name="index_1d_zen_factor", schema_base=Index1dZenFactorBase, entity_type="index")
+register_schema(db_name="index_1d_zen_factor", schema_base=Index1dZenFactorBase, entity_type="index", internal=True)
 
 
 # the __all__ is generated

@@ -96,11 +96,16 @@ def register_schema(
     db_name: str,
     schema_base: DeclarativeMeta,
     entity_type: str = None,
+    internal: bool = False,
 ):
     """
     Register schema. Providers come from Recorder registration (provider_map_recorder).
     Tables/engines are created lazily on first get_db_engine(provider, db_name).
-    For schemas without Recorders (e.g. zvt_info), add to config: storage.schema_providers.
+    For schemas without Recorders, add to config: storage.schema_providers.
+
+    :param internal: If True, schema is business/internal data, not tied to external data source.
+                     Internal schemas only care about storage routing, do not participate in
+                     provider switching (e.g. zvt_info, trader_info, stock_tags).
     """
     schemas = []
     for item in schema_base.registry.mappers:
@@ -111,12 +116,15 @@ def register_schema(
             zvt_context.schemas.append(cls)
             if issubclass(cls, Mixin):
                 cls._zvt_db_name = db_name
+                cls._zvt_internal = internal  # internal=True: business data, no external data source
             if entity_type:
                 add_to_map_list(the_map=zvt_context.entity_map_schemas, key=entity_type, value=cls)
             schemas.append(cls)
 
     zvt_context.dbname_map_schemas[db_name] = schemas
     zvt_context.dbname_map_base[db_name] = schema_base
+    if internal:
+        zvt_context.internal_db_names.add(db_name)
 
 
 # the __all__ is generated

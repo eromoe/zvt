@@ -11,7 +11,7 @@ class Stock1dMaStatsFactor(Stock1dMaStatsFactorBase, MaStatsFactorCommon):
     __tablename__ = "stock_1d_ma_stats_factor"
 
 
-register_schema(db_name="stock_1d_ma_stats_factor", schema_base=Stock1dMaStatsFactorBase)
+register_schema(db_name="stock_1d_ma_stats_factor", schema_base=Stock1dMaStatsFactorBase, internal=True)
 
 
 # the __all__ is generated

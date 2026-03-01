@@ -84,6 +84,11 @@ class Mixin(object):
             cls._zvt_providers_override.append(provider)
 
     @classmethod
+    def is_internal(cls) -> bool:
+        """True if schema is internal/business data, not tied to external data source."""
+        return getattr(cls, "_zvt_internal", False)
+
+    @classmethod
     def get_providers(cls) -> List[str]:
         """
         Providers: from provider_map_recorder (Recorder registration), or config storage.schema_providers.

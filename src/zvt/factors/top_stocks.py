@@ -54,7 +54,7 @@ class TopStocks(TopStocksBase, Mixin):
     all_stocks_count = Column(Integer)
 
 
-register_schema(db_name="top_stocks", schema_base=TopStocksBase)
+register_schema(db_name="top_stocks", schema_base=TopStocksBase, internal=True)
 
 
 def compute_vol_up_stocks(target_date, provider="em", adjust_type=AdjustType.qfq, stock_type="small", entity_ids=None):

@@ -9,7 +9,8 @@
   "storage": {
     "base_path": null,
     "path_template": null,
-    "storage_routes": {}
+    "storage_routes": {},
+    "schema_providers": {}
   }
 }
 ```
@@ -21,6 +22,7 @@
 | `base_path` | string \| null | 数据根路径。`null` 时使用 `zvt_env["data_path"]`（即 `zvt_home/data`） |
 | `path_template` | string \| null | 路径模板。占位符：`{base_path}`, `{provider}`, `{db_name}`, `{storage_id}`。`null` 时使用默认规则 |
 | `storage_routes` | object | 路由覆盖。键格式 `"provider\|db_name"`，值为自定义 `storage_id` |
+| `schema_providers` | object | 无 Recorder 的 schema 的 provider 映射。键为 `db_name`，值为 `["provider"]` 数组。用于 fallback 或 internal schema |
 
 ### 默认行为（不配置时）
 
@@ -57,3 +59,7 @@
   }
 }
 ```
+
+## Internal Schema（内部 schema）
+
+业务逻辑类数据（如 `zvt_info`、`trader_info`、`stock_tags`）与外部数据源无关，通过 `register_schema(..., internal=True)` 标记为 internal。Internal schema 只做存储路由，不参与 provider 切换。其 provider（如 `zvt`）在 `schema_providers` 中配置，用于确定存储路径。
